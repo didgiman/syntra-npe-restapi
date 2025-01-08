@@ -33,9 +33,15 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
         $created_at = now();
         $deadline = $request->input('deadline');
 
-        DB::insert('INSERT INTO tasks (title, feeling, estimate, created_by, created_at, deadline) VALUES (?, ?, ?)', [$title, $feeling, $estimate, $user_id, $created_at]);
+        DB::insert('INSERT INTO tasks (title, feeling, estimate, created_by, created_at, deadline) VALUES (?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $created_at, $deadline]);
 
-    return response()->json(['message' => 'Task created successfully'], 201);
+        $lastTask = DB::select('SELECT * FROM tasks ORDER BY id DESC LIMIT 1');
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Task created successfully',
+            'task' => $lastTask[0]
+        ], 201);
     } catch (\Exception $e) {
         return response()->json(['succes' => 'Task creation failed', 'details' => $e->getMessage()], 400);
     }
