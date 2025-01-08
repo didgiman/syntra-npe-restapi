@@ -35,17 +35,18 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 
         DB::insert('INSERT INTO tasks (title, feeling, estimate, created_by, created_at, deadline) VALUES (?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $created_at, $deadline]);
 
-        $lastTask = DB::select('SELECT * FROM tasks ORDER BY id DESC LIMIT 1');
+        $lastTask = DB::select('SELECT * FROM tasks ORDER BY id DESC LIMIT 1'); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
     
         return response()->json([
             'success' => true,
             'message' => 'Task created successfully',
-            'task' => $lastTask[0]
+            'task' => $lastTask[0] // makes sure that we access the first (and only) element in the array.
         ], 201);
+
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Missing entry in required field.'
+            'message' => 'Missing expected entry in a required field.'
         ], 400);
     }
 });
