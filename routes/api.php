@@ -43,6 +43,9 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
             'task' => $lastTask[0]
         ], 201);
     } catch (\Exception $e) {
-        return response()->json(['succes' => 'Task creation failed', 'details' => $e->getMessage()], 400);
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing entry in required field.'
+        ], 400);
     }
 });
