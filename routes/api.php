@@ -39,7 +39,7 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
     
         return response()->json([
             'success' => true,
-            'message' => 'Task created successfully',
+            'message' => 'Task created successfully.',
             'task' => $lastTask[0] // makes sure that we access the first (and only) element in the array.
         ], 201);
 
@@ -84,29 +84,36 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
 
         return response()->json([
             'success' => true,
-            'message' => 'Task updated successfully',
+            'message' => 'Task updated successfully.',
             'task' => $updatedTask[0] // makes sure that we access the first (and only) element in the array.
         ], 200);
 
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'An unexpected error occured.'
+            'message' => 'An error occurred while processing your request. Please try again later.'
         ], 500);
     }
 });
 
 // Delete a task by ID
-Route::delete('/task/{id}', function ($id) {
+Route::delete('/tasks/{id}', function ($id) {
 
     try {
         $deleted = DB::delete('DELETE FROM tasks WHERE id = ?', [$id]);
         if ($deleted === 0) {
-            return response()->json(['message' => 'Task not found'], 404);
+            return response()->json([
+                'message' => 'Task not found.'
+            ], 404);
     }
-    return response()->json(['message' => 'Course deleted successfully']);
+    return response()->json([
+        'success' => true,
+        'message' => 'Task deleted successfully.'
+    ], 204);
     } catch (Exception $e) {
-        return response()->json(['message' => 'An error occured'], 500);
+        return response()->json([
+            'message' => 'An error occurred while processing your request. Please try again later.'
+        ], 500);
     }
     
 });
