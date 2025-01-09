@@ -50,3 +50,17 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
         ], 400);
     }
 });
+
+// Update a task by ID
+Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
+    $title = $request->input('title');
+    $description = $request->input('description');
+
+
+    $affected = DB::update('UPDATE tasks SET title = ?, description = ? WHERE id = ?', [$title, $description, $id]);
+
+    if ($affected === 0) {
+        return response()->json(['message' => 'Task not found or no changes made'], 404);
+    }
+    return response()->json(['message' => 'Task updated successfully']);
+});
