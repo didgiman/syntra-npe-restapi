@@ -35,7 +35,7 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 
         DB::insert('INSERT INTO tasks (title, feeling, estimate, created_by, created_at, deadline) VALUES (?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $created_at, $deadline]);
 
-        $lastTask = DB::select('SELECT * FROM tasks ORDER BY id DESC LIMIT 1'); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
+        $lastTask = DB::select('SELECT * FROM tasks WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
     
         return response()->json([
             'success' => true,
@@ -53,14 +53,43 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 
 // Update a task by ID
 Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
-    $title = $request->input('title');
-    $description = $request->input('description');
 
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'feeling' => 'required|string|max:255',
+        'estimate' => 'required|integer|min:1',
+        'user_id' => 'required|integer',  // validate the user ID from request
+        'deadline' => 'string|max:255',
 
-    $affected = DB::update('UPDATE tasks SET title = ?, description = ? WHERE id = ?', [$title, $description, $id]);
+    ]); 
 
-    if ($affected === 0) {
-        return response()->json(['message' => 'Task not found or no changes made'], 404);
+    try {
+        $title = $request->input('title');
+        $feeling = $request->input('feeling');
+        $estimate = $request->input('estimate');
+        $user_id = $request->input('user_id');
+        $deadline = $request->input('deadline');
+    
+    
+        $affected = DB::update('UPDATE tasks SET title = ?, feeling = ?, estimate = ?, deadline = ? WHERE id = ?', [$title,$feeling, $estimate, $deadline, $id]);
+        
+        // checks if there were updated fields
+        if ($affected === 0) {
+            return response()->json(['message' => 'No changes were made or task not found'], 404);
+        }
+
+        $updatedTask = DB::select('SELECT * FROM tasks WHERE id = ?', [$id]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task updated successfully',
+            'task' => $updatedTask[0] // makes sure that we access the first (and only) element in the array.
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An unexpected error occured.'
+        ], 500);
     }
-    return response()->json(['message' => 'Task updated successfully']);
 });
