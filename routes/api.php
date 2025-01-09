@@ -73,9 +73,11 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
     
         $affected = DB::update('UPDATE tasks SET title = ?, feeling = ?, estimate = ?, deadline = ? WHERE id = ?', [$title,$feeling, $estimate, $deadline, $id]);
         
-        // checks if there were updated fields
         if ($affected === 0) {
-            return response()->json(['message' => 'No changes were made or task not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'No changes were made.'
+            ], 404);
         }
 
         $updatedTask = DB::select('SELECT * FROM tasks WHERE id = ?', [$id]);
