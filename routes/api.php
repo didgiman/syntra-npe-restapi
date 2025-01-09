@@ -95,3 +95,18 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
         ], 500);
     }
 });
+
+// Delete a task by ID
+Route::delete('/task/{id}', function ($id) {
+
+    try {
+        $deleted = DB::delete('DELETE FROM tasks WHERE id = ?', [$id]);
+        if ($deleted === 0) {
+            return response()->json(['message' => 'Task not found'], 404);
+    }
+    return response()->json(['message' => 'Course deleted successfully']);
+    } catch (Exception $e) {
+        return response()->json(['message' => 'An error occured'], 500);
+    }
+    
+});
