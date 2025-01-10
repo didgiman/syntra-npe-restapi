@@ -16,16 +16,17 @@ Route::get('/tasks', function () {
 // Create a new task
 Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'feeling' => 'required|integer|min:1',
-        'estimate' => 'required|numeric|min:0',
-        'user_id' => 'required|integer',  // validate the user ID from request
-        // 'deadline' => 'string|max:255',
-
-    ]);
-
     try {
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'feeling' => 'required|integer|min:1',
+            'estimate' => 'required|numeric|min:0',
+            'user_id' => 'required|integer',  // validate the user ID from request
+            // 'deadline' => 'string|max:255',
+    
+        ]);
+
         $title = $request->input('title');
         $feeling = $request->input('feeling');
         $estimate = $request->input('estimate');
@@ -53,16 +54,17 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 // Update a task by ID
 Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
 
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'feeling' => 'required|integer|min:1',
-        'estimate' => 'required|integer|min:0',
-        'user_id' => 'required|integer',  // validate the user ID from request
-        // 'deadline' => 'string|max:255',
-
-    ]); 
-
     try {
+        
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'feeling' => 'required|integer|min:1',
+            'estimate' => 'required|integer|min:0',
+            'user_id' => 'required|integer',  // validate the user ID from request
+            // 'deadline' => 'string|max:255',
+    
+        ]); 
+
         $title = $request->input('title');
         $feeling = $request->input('feeling');
         $estimate = $request->input('estimate');
