@@ -116,3 +116,33 @@ Route::delete('/tasks/{id}', function ($id) {
     }
     
 });
+
+// usertasks endpoint to GET all tasks from a specific user
+Route::get('/tasks', function (Request $request) {
+    try {
+        // validate the input
+        $request->validate([
+        'user_id' => 'required|integer|exists:users,id'  // validate the user ID from request
+    ]); 
+        $user_id = $request->input('user_id');
+        $tasks = DB::select('SELECT * FROM tasks WHERE user_id = ?', [$user_id]);
+        return response()->json([
+            'success' => true,
+            'tasks' => $tasks
+        ], 200);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        // handle validation errors
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid input provided.',
+            'errors' => $e->errors() // validation-specific errors
+        ], 422);
+    } catch (\Exception $e) {
+        // handle unexpected errors
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while retrieving tasks. Please try again later.'
+        ], 500);
+    }
+    
+});
