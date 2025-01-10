@@ -55,11 +55,11 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
 
     try {
-        
+
         $request->validate([
             'title' => 'required|string|max:255',
             'feeling' => 'required|integer|min:1',
-            'estimate' => 'required|integer|min:0',
+            'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
             // 'deadline' => 'string|max:255',
     
