@@ -56,7 +56,7 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
     $request->validate([
         'title' => 'required|string|max:255',
         'feeling' => 'required|integer|min:1',
-        'estimate' => 'required|integer|min:1',
+        'estimate' => 'required|integer|min:0',
         'user_id' => 'required|integer',  // validate the user ID from request
         // 'deadline' => 'string|max:255',
 
@@ -108,7 +108,7 @@ Route::delete('/tasks/{id}', function ($id) {
     return response()->json([
         'success' => true,
         'message' => 'Task deleted successfully.'
-    ], 204);
+    ], 200);
     } catch (Exception $e) {
         return response()->json([
             'message' => 'An error occurred while processing your request. Please try again later.'
