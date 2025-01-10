@@ -55,10 +55,10 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
 
     $request->validate([
         'title' => 'required|string|max:255',
-        'feeling' => 'required|string|max:255',
+        'feeling' => 'required|integer|min:1',
         'estimate' => 'required|integer|min:1',
         'user_id' => 'required|integer',  // validate the user ID from request
-        'deadline' => 'string|max:255',
+        // 'deadline' => 'string|max:255',
 
     ]); 
 
