@@ -18,22 +18,21 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 
     $request->validate([
         'title' => 'required|string|max:255',
-        'feeling' => 'required|string|max:255',
-        'estimate' => 'required|integer|min:1',
+        'feeling' => 'required|integer|min:1',
+        'estimate' => 'required|numeric|min:0',
         'user_id' => 'required|integer',  // validate the user ID from request
-        'deadline' => 'string|max:255',
+        // 'deadline' => 'string|max:255',
 
-    ]); 
+    ]);
 
     try {
         $title = $request->input('title');
         $feeling = $request->input('feeling');
         $estimate = $request->input('estimate');
         $user_id = $request->input('user_id'); // get the user ID from the request | as noted above
-        $created_at = now();
         $deadline = $request->input('deadline');
 
-        DB::insert('INSERT INTO tasks (title, feeling, estimate, created_by, created_at, deadline) VALUES (?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $created_at, $deadline]);
+        DB::insert('INSERT INTO tasks (title, feeling, estimate, user_id, deadline) VALUES (?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $deadline]);
 
         $lastTask = DB::select('SELECT * FROM tasks WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
     
