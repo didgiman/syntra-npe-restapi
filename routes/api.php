@@ -40,20 +40,22 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
         return response()->json([
             'success' => true,
             'message' => 'Task created successfully.',
-            'task' => $lastTask[0] // makes sure that we access the first (and only) element in the array.
+            'task' => $lastTask[0], // makes sure that we access the first (and only) element in the array.,
         ], 201);
 
     
     } catch (\illuminate\Validation\ValidationException $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Missing value in required field.'
+            'message' => 'Missing value in required field.',
+            'errors' =>$e->errors()
         ], 400);
 
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Missing expected entry in a required field.'
+            'message' => 'Missing expected entry in a required field.',
+            'errors' =>$e->errors()
         ], 400);
     }
 });
@@ -84,7 +86,8 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
         if ($affected === 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'No changes were made.'
+                'message' => 'No changes were made.',
+                'errors' =>$e->errors()
             ], 404);
         }
 
@@ -93,19 +96,21 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
         return response()->json([
             'success' => true,
             'message' => 'Task updated successfully.',
-            'task' => $updatedTask[0] // makes sure that we access the first (and only) element in the array.
+            'task' => $updatedTask[0], // makes sure that we access the first (and only) element in the array.,
         ], 200);
 
     } catch (\illuminate\Validation\ValidationException $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Missing value in required field.'
+            'message' => 'Missing value in required field.',
+            'errors' =>$e->errors()
         ], 400);
     
     }catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'An error occurred while processing your request. Please try again later.'
+            'message' => 'An error occurred while processing your request. Please try again later.',
+            'errors' =>$e->errors()
         ], 500);
     }
 });
@@ -117,7 +122,9 @@ Route::delete('/tasks/{id}', function ($id) {
         $deleted = DB::delete('DELETE FROM tasks WHERE id = ?', [$id]);
         if ($deleted === 0) {
             return response()->json([
-                'message' => 'Task not found.'
+                'success' => false,
+                'message' => 'Task not found.',
+                'errors' =>$e->errors()
             ], 404);
     }
     return response()->json([
@@ -126,7 +133,9 @@ Route::delete('/tasks/{id}', function ($id) {
     ], 200);
     } catch (Exception $e) {
         return response()->json([
-            'message' => 'An error occurred while processing your request. Please try again later.'
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.',
+            'errors' =>$e->errors()
         ], 500);
     }
     
@@ -139,7 +148,8 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
         if (!DB::table('users')->where('id', $user_id)->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'User does not exist.'
+                'message' => 'User does not exist.',
+                'errors' =>$e->errors()
             ], 404);
         }
 
@@ -148,19 +158,22 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
         if (empty($tasks)) {
             return response()->json([
                 'success' => false,
-                'message' => 'No tasks found for the specified user.'
+                'message' => 'No tasks found for the specified user.',
+                'errors' =>$e->errors()
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'tasks' => $tasks
+            'tasks' => $tasks,
+            'errors' =>$e->errors()
         ], 200);
 
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'An error occurred while retrieving tasks. Please try again later.'
+            'message' => 'An error occurred while retrieving tasks. Please try again later.',
+            'errors' =>$e->errors()
         ], 500);
     }
 });
