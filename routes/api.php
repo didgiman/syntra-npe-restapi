@@ -144,27 +144,28 @@ Route::delete('/tasks/{id}', function ($id) {
 // usertasks endpoint to GET all tasks for a specific user
 Route::get('/usertasks/{user_id}', function ($user_id) {
     try {
-        // validate the user_id
-        if (!DB::table('users')->where('id', $user_id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User does not exist.',
-                'errors' =>$e->errors()
-            ], 404);
-        }
+        // // validate the user_id
+        // if (!DB::table('users')->where('id', $user_id)->exists()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'User does not exist.',
+        //         'errors' =>$e->errors()
+        //     ], 404);
+        // }
 
         $tasks = DB::select('SELECT * FROM tasks WHERE user_id = ? AND ended_at IS NULL', [$user_id]);
 
         if (empty($tasks)) {
             return response()->json([
-                'success' => false,
+                'success' => true,
                 'message' => 'No tasks found for the specified user.',
-                'errors' =>$e->errors()
+                'tasks' => $tasks
             ], 404);
         }
 
         return response()->json([
             'success' => true,
+            'message' => 'Retrieved tasks successfully.',
             'tasks' => $tasks
         ], 200);
 
