@@ -43,6 +43,13 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
             'task' => $lastTask[0] // makes sure that we access the first (and only) element in the array.
         ], 201);
 
+    
+    } catch (\illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing value in required field.'
+        ], 400);
+
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
@@ -89,7 +96,13 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
             'task' => $updatedTask[0] // makes sure that we access the first (and only) element in the array.
         ], 200);
 
-    } catch (\Exception $e) {
+    } catch (\illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing value in required field.'
+        ], 400);
+    
+    }catch (\Exception $e) {
         return response()->json([
             'success' => false,
             'message' => 'An error occurred while processing your request. Please try again later.'
