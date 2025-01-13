@@ -130,7 +130,7 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
             ], 404);
         }
 
-        $tasks = DB::select('SELECT * FROM tasks WHERE user_id = ?', [$user_id]);
+        $tasks = DB::select('SELECT * FROM tasks WHERE user_id = ? AND ended_at IS NULL', [$user_id]);
 
         if (empty($tasks)) {
             return response()->json([
