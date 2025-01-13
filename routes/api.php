@@ -165,8 +165,7 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
 
         return response()->json([
             'success' => true,
-            'tasks' => $tasks,
-            'errors' =>$e->errors()
+            'tasks' => $tasks
         ], 200);
 
     } catch (\Exception $e) {
