@@ -2,7 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
+// Route for getting authenticated user (Sanctum)
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -19,8 +21,8 @@ Route::get('/users', function() {
     return response()->json($users);
 });
 
-// Route for authentication
-Route::post('/login', 'AuthController@login');
+// Route for authentication (login)
+Route::post('/login', [AuthController::class, 'login']);
 
 // Create a new task
 Route::post('/tasks', function (\Illuminate\Http\Request $request) {
@@ -200,7 +202,7 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
         $email = $request->input('email');
         $password = $request->input('password');
 
-
+        $password = bcrypt($request->input('password')); // hashes a users password using bcrypt (Laravel default)
         DB::insert('INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)', [$first_name, $last_name, $email, $password]);
 
         $lastUser = DB::select('SELECT * FROM users ORDER BY id DESC LIMIT 1'); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
