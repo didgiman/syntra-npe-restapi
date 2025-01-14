@@ -173,3 +173,54 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
         ], 500);
     }
 });
+
+
+// Get all users
+Route::get('/users', function() {
+    $users = DB::select('SELECT * FROM users');
+    return response()->json($users);
+});
+
+// Create a new user
+Route::post('/users', function (\Illuminate\Http\Request $request) {
+
+    try {
+
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|max:255',
+            'password' => 'required|string|max:255'
+        ]);
+
+        $first_name = $request->input('first_name');
+        $last_name = $request->input('last_name');
+        $email = $request->input('email');
+        $password = $request->input('password');
+
+
+        DB::insert('INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)', [$first_name, $last_name, $email, $password]);
+
+        $lastUser = DB::select('SELECT * FROM users ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully.',
+            'task' => $lastUser[0], // makes sure that we access the first (and only) element in the array.,
+        ], 201);
+
+    
+    } catch (\illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing value in a required field.',
+            'errors' =>$e->errors()
+        ], 400);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unexpected error.'
+        ], 500);
+    }
+});
