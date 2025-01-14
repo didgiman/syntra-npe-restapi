@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class PasswordController extends Controller
 {
@@ -30,6 +31,14 @@ class PasswordController extends Controller
                     'message' => 'User not found.',
                 ], 404);
             }
+            // Check if the new password is the same as the old password
+        if (Hash::check($new_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New password cannot be the same as old password.',
+            ], 422);
+        }
+
             // hash the new password
             $hashedPassword = Hash::make($new_password);
 
@@ -37,12 +46,19 @@ class PasswordController extends Controller
             DB::table('users')
                 ->where('id', $id)
                 ->update(['password' => $hashedPassword]);
-
+            
             // return a success response
             return response()->json([
                 'success' => true,
-                'message' => 'Password updated successfully.',
+                'message' => "successfully updated the password for {$user->first_name} {$user->last_name}.",
             ], 200);
+        } catch (ValidationException $e) {
+            // Custom error message for validation errors
+            return response()->json([
+                'success' => false,
+                'message' => 'The new password must be at least 6 characters.',
+            ], 422);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
