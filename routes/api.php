@@ -13,6 +13,15 @@ Route::get('/tasks', function () {
     return response()->json($tasks);
 });
 
+// Get all users
+Route::get('/users', function() {
+    $users = DB::select('SELECT * FROM users');
+    return response()->json($users);
+});
+
+// Route for authentication
+Route::post('/login', 'AuthController@login');
+
 // Create a new task
 Route::post('/tasks', function (\Illuminate\Http\Request $request) {
 
@@ -172,13 +181,6 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
             'message' => 'An error occurred while retrieving tasks. Please try again later.',
         ], 500);
     }
-});
-
-
-// Get all users
-Route::get('/users', function() {
-    $users = DB::select('SELECT * FROM users');
-    return response()->json($users);
 });
 
 // Create a new user
