@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PasswordController;
 
 // Route for getting authenticated user (Sanctum)
 Route::get('/user', function (Request $request) {
@@ -23,6 +24,9 @@ Route::get('/users', function() {
 
 // Route for authentication (login)
 Route::post('/login', [AuthController::class, 'login']);
+
+// Route to update the password
+Route::put('/update-pw', [PasswordController::class, 'updatePassword']);
 
 // Create a new task
 Route::post('/tasks', function (\Illuminate\Http\Request $request) {
