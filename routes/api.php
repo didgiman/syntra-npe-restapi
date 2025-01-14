@@ -23,8 +23,6 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
             'feeling' => 'required|integer|min:1',
             'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
-            // 'deadline' => 'string|max:255',
-    
         ]);
 
         $title = $request->input('title');
@@ -32,8 +30,11 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
         $estimate = $request->input('estimate');
         $user_id = $request->input('user_id'); // get the user ID from the request | as noted above
         $deadline = $request->input('deadline');
+        $started_at = $request->input('started_at');
+        $ended_at = $request->input('ended_at');
 
-        DB::insert('INSERT INTO tasks (title, feeling, estimate, user_id, deadline) VALUES (?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $deadline]);
+
+        DB::insert('INSERT INTO tasks (title, feeling, estimate, user_id, deadline, started_at, ended_at) VALUES (?, ?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $deadline, $started_at, $ended_at]);
 
         $lastTask = DB::select('SELECT * FROM tasks WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
     
@@ -70,7 +71,6 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
             'feeling' => 'required|integer|min:1',
             'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
-            // 'deadline' => 'string|max:255',
     
         ]); 
 
@@ -79,15 +79,16 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
         $estimate = $request->input('estimate');
         $user_id = $request->input('user_id');
         $deadline = $request->input('deadline');
+        $started_at = $request->input('started_at');
+        $ended_at = $request->input('ended_at');
     
     
-        $affected = DB::update('UPDATE tasks SET title = ?, feeling = ?, estimate = ?, deadline = ? WHERE id = ?', [$title,$feeling, $estimate, $deadline, $id]);
+        $affected = DB::update('UPDATE tasks SET title = ?, feeling = ?, estimate = ?, deadline = ?, started_at = ?, ended_at = ? WHERE id = ?', [$title,$feeling, $estimate, $deadline, $started_at, $ended_at, $id]);
         
         if ($affected === 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'No changes were made.',
-                'errors' =>$e->errors()
+                'message' => 'No changes were made.'
             ], 404);
         }
 
@@ -110,7 +111,6 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
         return response()->json([
             'success' => false,
             'message' => 'An error occurred while processing your request. Please try again later.',
-            'errors' =>$e->errors()
         ], 500);
     }
 });
