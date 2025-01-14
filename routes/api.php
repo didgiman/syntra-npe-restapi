@@ -201,12 +201,12 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
 
         DB::insert('INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)', [$first_name, $last_name, $email, $password]);
 
-        $lastUser = DB::select('SELECT * FROM users ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
+        $lastUser = DB::select('SELECT * FROM users ORDER BY id DESC LIMIT 1'); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
     
         return response()->json([
             'success' => true,
             'message' => 'User created successfully.',
-            'task' => $lastUser[0], // makes sure that we access the first (and only) element in the array.,
+            'task' => $lastUser[0] // makes sure that we access the first (and only) element in the array.,
         ], 201);
 
     
