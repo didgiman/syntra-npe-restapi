@@ -55,8 +55,7 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Missing expected entry in a required field.',
-            'errors' =>$e->errors()
+            'message' => 'Missing expected entry in a required field.'
         ], 400);
     }
 });
@@ -124,7 +123,6 @@ Route::delete('/tasks/{id}', function ($id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Task not found.',
-                'errors' =>$e->errors()
             ], 404);
     }
     return response()->json([
@@ -134,8 +132,7 @@ Route::delete('/tasks/{id}', function ($id) {
     } catch (Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'An error occurred while processing your request. Please try again later.',
-            'errors' =>$e->errors()
+            'message' => 'An error occurred while processing your request. Please try again later.'
         ], 500);
     }
     
@@ -173,7 +170,6 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
         return response()->json([
             'success' => false,
             'message' => 'An error occurred while retrieving tasks. Please try again later.',
-            'errors' =>$e->errors()
         ], 500);
     }
 });
