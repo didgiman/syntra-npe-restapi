@@ -19,7 +19,7 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
     try {
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:',
             'feeling' => 'required|integer|min:1',
             'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
@@ -66,7 +66,7 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
     try {
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:',
             'feeling' => 'required|integer|min:1',
             'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
@@ -189,7 +189,7 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|max:255',
+            'email' => 'required|string|max:255|unique:users,email',
             'password' => 'required|string|max:255'
         ]);
 
@@ -211,16 +211,46 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
 
     
     } catch (\illuminate\Validation\ValidationException $e) {
+        if (array_key_exists('email', $e->errors())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A user with that email already exists.',
+            ], 409);
+        }
         return response()->json([
             'success' => false,
             'message' => 'Missing value in a required field.',
             'errors' =>$e->errors()
         ], 400);
 
-    } catch (\Exception $e) {
+    }  catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Unexpected error.'
+            'message' => 'Unexpected error.',
         ], 500);
     }
+});
+
+// Delete a user by ID
+Route::delete('/users/{id}', function ($id) {
+
+    try {
+        $deleted = DB::delete('DELETE FROM users WHERE id = ?', [$id]);
+        if ($deleted === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+    }
+    return response()->json([
+        'success' => true,
+        'message' => 'User deleted successfully.'
+    ], 200);
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.'
+        ], 500);
+    }
+    
 });
