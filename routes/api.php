@@ -209,12 +209,19 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
         $password = bcrypt($request->input('password')); // hashes a users password using bcrypt (Laravel default)
         DB::insert('INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)', [$first_name, $last_name, $email, $password]);
 
+
+
         $lastUser = DB::select('SELECT * FROM users ORDER BY id DESC LIMIT 1'); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
-    
+        $user = $lastUser[0];
+
+        // remove fields you don't want to show in the response
+        unset($user->password);
+        unset($user->created_at);
+
         return response()->json([
             'success' => true,
             'message' => 'User created successfully.',
-            'task' => $lastUser[0] // makes sure that we access the first (and only) element in the array.,
+            'user' => $user,
         ], 201);
 
     
