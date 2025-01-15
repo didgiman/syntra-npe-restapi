@@ -225,20 +225,36 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
         ], 201);
 
     
-    } catch (\illuminate\Validation\ValidationException $e) {
-        if (array_key_exists('email', $e->errors())) {
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        $errors = $e->errors();
+        
+        // first check if any required fields are missing
+        foreach ($errors as $field => $messages) {
+            if (in_array('The '.$field.' field is required.', $messages)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing value in a required field.',
+                    'errors' => $errors
+                ], 400);
+            }
+        }
+
+        // then check for duplicate email
+        if (array_key_exists('email', $errors)) {
             return response()->json([
                 'success' => false,
                 'message' => 'A user with that email already exists.',
             ], 409);
         }
+
+        // For any other validation errors
         return response()->json([
             'success' => false,
-            'message' => 'Missing value in a required field.',
-            'errors' =>$e->errors()
+            'message' => 'Validation failed.',
+            'errors' => $errors
         ], 400);
 
-    }  catch (\Exception $e) {
+    } catch (\Exception $e) {
         return response()->json([
             'success' => false,
             'message' => 'Unexpected error.',
