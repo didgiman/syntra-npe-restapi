@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class PasswordController extends Controller
 {
-    public function updatePassword(request $request) {
+    public function updatePassword(Request $request) {
         try {
             // validate the request to ensure user_id and new password are provided
             $request->validate([
@@ -31,12 +31,24 @@ class PasswordController extends Controller
                     'message' => 'User not found.',
                 ], 404);
             }
-            // Check if the new password is the same as the old password
-        if (Hash::check($new_password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'New password cannot be the same as old password.',
-            ], 422);
+             // Check if the stored password is hashed
+        if (password_get_info($user->password)['algo'] !== 0) { // algo = 0 means no hashing
+            // compare directly
+            if ($user->password === $new_password) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New password cannot be the same as old password.',
+                ], 422);
+            }
+        } else {
+            // compare hashed password
+            if (Hash::check($new_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New password cannot be the same as old password.',
+                ], 422);
+            }
+
         }
 
             // hash the new password
@@ -63,6 +75,7 @@ class PasswordController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occured.',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
