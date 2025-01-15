@@ -24,31 +24,46 @@ class PasswordController extends Controller
             // find the user by their ID
             $user = DB::table('users')->where('id', $id)->first();
 
-            // check if the user exists
+            // check if the user exists 
+            // this check is redundant because we're using exists:users,id in validation
+            // keeping it for extra safety
             if(!$user){
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found.',
                 ], 404);
             }
-             // Check if the stored password is hashed
-        if (password_get_info($user->password)['algo'] !== 0) { // algo = 0 means no hashing
-            // compare directly
-            if ($user->password === $new_password) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'New password cannot be the same as old password.',
-                ], 422);
-            }
-        } else {
-            // compare hashed password
-            if (Hash::check($new_password, $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'New password cannot be the same as old password.',
-                ], 422);
-            }
 
+            // function to handle duplicate response code
+            $samePasswordResponse = function() {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New Password cannot be the same as old password.',
+                ], 422);
+            };
+
+            // Check if the stored password is hashed
+            if (password_get_info($user->password)['algo'] !== 0) { // algo = 0 means no hashing
+            try {
+                // password IS hashed, verify using Hash::check
+                if (Hash::check($new_password, $user->password)) {
+                return $samePasswordResponse();
+                }
+            } catch (\Exception $e){
+                // log the hash check failure
+                \Log::error('Hash check failed: ' . $e->getMessage());
+                
+                // if Hash:: check fails, fall back to direct comparison
+            if ($user->password === $new_password) {
+                return $samePasswordResponse();
+            }
+        }
+           
+        } else {
+            // password is NOT hashed, compare directly
+            if ($user->password === $new_password) {
+                return $samePasswordResponse();
+            }
         }
 
             // hash the new password
@@ -58,6 +73,9 @@ class PasswordController extends Controller
             DB::table('users')
                 ->where('id', $id)
                 ->update(['password' => $hashedPassword]);
+
+            // get updated user info for the response
+            $user = DB::table('users')->where('id', $id)->first();
             
             // return a success response
             return response()->json([
