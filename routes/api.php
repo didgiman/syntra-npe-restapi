@@ -78,7 +78,7 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
             // 'task' => $lastTask[0], // makes sure that we access the first (and only) element in the array., 
             
             // with Query builder
-            'tasks' => $lastTask,
+            'task' => $lastTask,
         ], 201);
 
         // with Query builder
