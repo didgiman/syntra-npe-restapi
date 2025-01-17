@@ -188,6 +188,9 @@ Route::delete('/tasks/{id}', function ($id) {
 // usertasks endpoint to GET all tasks for a specific user
 Route::get('/usertasks/{user_id}', function ($user_id) {
     try {
+
+        $finishedOnly = request()->query('finishedOnly', false);
+
         // // validate the user_id
         // if (!DB::table('users')->where('id', $user_id)->exists()) {
         //     return response()->json([
@@ -197,7 +200,16 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
         //     ], 404);
         // }
 
-        $tasks = DB::select('SELECT * FROM tasks WHERE user_id = ? AND ended_at IS NULL', [$user_id]);
+        $query = 'SELECT * FROM tasks WHERE user_id = ?';
+        $params = [$user_id];
+
+        if ($finishedOnly) {
+            $query .= ' AND ended_at IS NOT NULL';
+        } else {
+            $query .= ' AND ended_at IS NULL';
+        }
+
+        $tasks = DB::select($query, $params);
 
         if (empty($tasks)) {
             return response()->json([
