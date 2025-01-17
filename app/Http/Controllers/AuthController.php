@@ -28,8 +28,7 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid email address.',
-
+                'message' => 'User does not exist.',
             ], 401); // Unauthorized
         }
 
