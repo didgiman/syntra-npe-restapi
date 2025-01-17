@@ -34,31 +34,56 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
     try {
 
         $request->validate([
-            'title' => 'required|string|max:',
+            'title' => 'required|string|max:255',
             'feeling' => 'required|integer|min:1',
             'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
         ]);
 
+        // logs the received data
+        \Log::info('Received task data:', $request->all());
+
         $title = $request->input('title');
         $feeling = $request->input('feeling');
         $estimate = $request->input('estimate');
         $user_id = $request->input('user_id'); // get the user ID from the request | as noted above
-        $deadline = $request->input('deadline');
-        $started_at = $request->input('started_at');
-        $ended_at = $request->input('ended_at');
+        $deadline = $request->input('deadline') ?? null; // ?? null => makes this field optional
+        $started_at = $request->input('started_at') ?? null; // ?? null => makes this field optional
+        $ended_at = $request->input('ended_at') ?? null; // ?? null => makes this field optional
 
+        // with Query builder instead of raw SQL
+        $taskId = DB::table('tasks')->insertGetId([
+            'title' => $title,
+            'feeling' => $feeling,
+            'estimate' => $estimate,
+            'user_id' => $user_id,
+            'deadline' => $deadline,
+            'started_at' => $started_at,
+            'ended_at' => $ended_at
+        ]);   
+        
+        // raw SQL
+        // DB::insert('INSERT INTO tasks (title, feeling, estimate, user_id, deadline, started_at, ended_at) VALUES (?, ?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $deadline, $started_at, $ended_at]);
 
-        DB::insert('INSERT INTO tasks (title, feeling, estimate, user_id, deadline, started_at, ended_at) VALUES (?, ?, ?, ?, ?, ?, ?)', [$title, $feeling, $estimate, $user_id, $deadline, $started_at, $ended_at]);
+        // $lastTask = DB::select('SELECT * FROM tasks WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
+        
+        // Query builder
+        $lastTask = DB::table('tasks')->where('id', $taskId)->first();
 
-        $lastTask = DB::select('SELECT * FROM tasks WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$user_id]); // this will sort the DB by ID (highest > lowest) but: returns an array of results (!)
-    
+        
         return response()->json([
             'success' => true,
             'message' => 'Task created successfully.',
-            'task' => $lastTask[0], // makes sure that we access the first (and only) element in the array.,
+            // wih raw SQL
+            // 'task' => $lastTask[0], // makes sure that we access the first (and only) element in the array., 
+            
+            // with Query builder
+            'tasks' => $lastTask,
         ], 201);
 
+        // with Query builder
+
+        
     
     } catch (\illuminate\Validation\ValidationException $e) {
         return response()->json([
@@ -68,10 +93,17 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
         ], 400);
 
     } catch (\Exception $e) {
+        // logging for debug
+        \Log::error('Task creation failed: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+
         return response()->json([
             'success' => false,
-            'message' => 'Missing expected entry in a required field.'
-        ], 400);
+            'message' => 'An unexpected error occured: ' . $e->getMessage(),
+            // for debugging
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
     }
 });
 
@@ -81,7 +113,7 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
     try {
 
         $request->validate([
-            'title' => 'required|string|max:',
+            'title' => 'required|string|max:255',
             'feeling' => 'required|integer|min:1',
             'estimate' => 'required|numeric|min:0',
             'user_id' => 'required|integer',  // validate the user ID from request
