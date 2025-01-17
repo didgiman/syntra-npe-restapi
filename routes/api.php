@@ -319,8 +319,10 @@ Route::delete('/users/{id}', function ($id) {
     
 });
 
-// task to ChatGPT
+// talk to ChatGPT
 Route::post('/chatgpt', function (Request $request) {
+    // This method will perform a single request to ChatGPT
+    // and return the response as recieved
 
     try {
 
@@ -346,21 +348,22 @@ Route::post('/chatgpt', function (Request $request) {
             // Process the response data
             $data = $response->json();
         } else {
-            $data = $response->json();
+            // Handle the error
+            throw new \Exception('Failed to connect to ChatGPT: ' . $response->body());
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Talked to ChatGPT.',
-            'response' => $data['choices'][0]['message']['content'],
+            'response' => $data
         ], 200);
 
     
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'response' => 'An error occurred while processing your request. Please try again later.',
-            'message' => $e->getMessage()
+            'message' => 'An error occurred while processing your request. Please try again later.',
+            'error' => $e->getMessage()
         ], 500);
     }
 });
