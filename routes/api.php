@@ -50,6 +50,7 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
         $deadline = $request->input('deadline') ?? null; // ?? null => makes this field optional
         $started_at = $request->input('started_at') ?? null; // ?? null => makes this field optional
         $ended_at = $request->input('ended_at') ?? null; // ?? null => makes this field optional
+        $recurring = $request->input('recurring') ?? null; // ?? null => makes this field optional
 
         // with Query builder instead of raw SQL
         $taskId = DB::table('tasks')->insertGetId([
@@ -59,7 +60,8 @@ Route::post('/tasks', function (\Illuminate\Http\Request $request) {
             'user_id' => $user_id,
             'deadline' => $deadline,
             'started_at' => $started_at,
-            'ended_at' => $ended_at
+            'ended_at' => $ended_at,
+            'recurring' => $recurring
         ]);   
         
         // raw SQL
@@ -127,9 +129,10 @@ Route::put('/tasks/{id}', function (\Illuminate\Http\Request $request, $id) {
         $deadline = $request->input('deadline');
         $started_at = $request->input('started_at');
         $ended_at = $request->input('ended_at');
+        $recurring = $request->input('recurring');
     
     
-        $affected = DB::update('UPDATE tasks SET title = ?, feeling = ?, estimate = ?, deadline = ?, started_at = ?, ended_at = ? WHERE id = ?', [$title,$feeling, $estimate, $deadline, $started_at, $ended_at, $id]);
+        $affected = DB::update('UPDATE tasks SET title = ?, feeling = ?, estimate = ?, deadline = ?, started_at = ?, ended_at = ?, recurring = ? WHERE id = ?', [$title,$feeling, $estimate, $deadline, $started_at, $ended_at, $recurring, $id]);
         
         if ($affected === 0) {
             return response()->json([
