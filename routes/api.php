@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordController;
+use Illuminate\Support\Facades\Http;
 
 // Route for getting authenticated user (Sanctum)
 Route::get('/user', function (Request $request) {
@@ -328,4 +329,53 @@ Route::delete('/users/{id}', function ($id) {
         ], 500);
     }
     
+});
+
+// talk to ChatGPT
+Route::post('/chatgpt', function (Request $request) {
+    // This method will perform a single request to ChatGPT
+    // and return the response as recieved
+
+    try {
+
+        $apiUrl = 'https://api.openai.com/v1/chat/completions';
+        $token = env('OPENAI_API_KEY');
+
+        if (empty($token)) {
+            throw new \Exception('No API key found.');
+        }
+
+        $jsonString = $request->getContent();
+
+        $response = Http::withOptions([
+            'verify' => false
+        ])->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json'
+        ])->withBody(
+            $jsonString, 'application/json'
+        )->post($apiUrl);
+
+        if ($response->successful()) {
+            // Process the response data
+            $data = $response->json();
+        } else {
+            // Handle the error
+            throw new \Exception('Failed to connect to ChatGPT: ' . $response->body());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Talked to ChatGPT.',
+            'response' => $data
+        ], 200);
+
+    
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
