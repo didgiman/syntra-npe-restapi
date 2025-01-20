@@ -17,11 +17,6 @@ Route::get('/tasks', function () {
     return response()->json($tasks);
 });
 
-// Get all users
-Route::get('/users', function() {
-    $users = DB::select('SELECT * FROM users');
-    return response()->json($users);
-});
 
 // Route for authentication (login)
 Route::post('/login', [AuthController::class, 'login']);
@@ -382,3 +377,94 @@ Route::post('/chatgpt', function (Request $request) {
         ], 500);
     }
 });
+
+/* START USERS ENDPOINTS */
+
+// Get all users
+Route::get('/users', function() {
+    $users = DB::select('SELECT * FROM users');
+    return response()->json($users);
+});
+
+// Get specific user
+Route::get('/users/{id}', function ($id) {
+    try {
+        $user = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
+        if ($user === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+        unset($user[0]->password); // Remove password
+        return response()->json([
+            'success' => true,
+            'message' => 'User retrieved successfully.',
+            'user' => $user[0]
+        ], 200);
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.'
+        ], 500);
+    }
+    
+});
+
+// Update user
+Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
+
+    try {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|max:255',  
+        ]); 
+
+        $first_name = $request->input('first_name');
+        $last_name = $request->input('last_name');
+        $email = $request->input('email');
+        $settings = $request->input('settings');
+    
+        $affected = DB::update('
+            UPDATE users 
+            SET first_name = ?,
+                last_name = ?,
+                email = ?,
+                settings = ? 
+            WHERE id = ?
+            ',
+            [$first_name, $last_name, $email, $settings, $id]
+        );
+        
+        if ($affected === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No changes were made.'
+            ], 404);
+        }
+
+        $updatedUser = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
+        unset($updatedUser[0]->password); // Remove password
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully.',
+            'task' => $updatedUser[0], // makes sure that we access the first (and only) element in the array.,
+        ], 200);
+
+    } catch (\illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing value in required field.',
+            'errors' =>$e->errors()
+        ], 400);
+    
+    }catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.',
+        ], 500);
+    }
+});
+/* END USERS ENDPOINTS */
