@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordController;
+use Illuminate\Support\Facades\Http;
 
 // Route for getting authenticated user (Sanctum)
 Route::get('/user', function (Request $request) {
@@ -191,6 +192,9 @@ Route::delete('/tasks/{id}', function ($id) {
 // usertasks endpoint to GET all tasks for a specific user
 Route::get('/usertasks/{user_id}', function ($user_id) {
     try {
+
+        $finishedOnly = request()->query('finishedOnly', false);
+
         // // validate the user_id
         // if (!DB::table('users')->where('id', $user_id)->exists()) {
         //     return response()->json([
@@ -200,7 +204,16 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
         //     ], 404);
         // }
 
-        $tasks = DB::select('SELECT * FROM tasks WHERE user_id = ? AND ended_at IS NULL', [$user_id]);
+        $query = 'SELECT * FROM tasks WHERE user_id = ?';
+        $params = [$user_id];
+
+        if ($finishedOnly) {
+            $query .= ' AND ended_at IS NOT NULL';
+        } else {
+            $query .= ' AND ended_at IS NULL';
+        }
+
+        $tasks = DB::select($query, $params);
 
         if (empty($tasks)) {
             return response()->json([
@@ -319,4 +332,53 @@ Route::delete('/users/{id}', function ($id) {
         ], 500);
     }
     
+});
+
+// talk to ChatGPT
+Route::post('/chatgpt', function (Request $request) {
+    // This method will perform a single request to ChatGPT
+    // and return the response as recieved
+
+    try {
+
+        $apiUrl = 'https://api.openai.com/v1/chat/completions';
+        $token = env('OPENAI_API_KEY');
+
+        if (empty($token)) {
+            throw new \Exception('No API key found.');
+        }
+
+        $jsonString = $request->getContent();
+
+        $response = Http::withOptions([
+            'verify' => false
+        ])->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json'
+        ])->withBody(
+            $jsonString, 'application/json'
+        )->post($apiUrl);
+
+        if ($response->successful()) {
+            // Process the response data
+            $data = $response->json();
+        } else {
+            // Handle the error
+            throw new \Exception('Failed to connect to ChatGPT: ' . $response->body());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Talked to ChatGPT.',
+            'response' => $data
+        ], 200);
+
+    
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
