@@ -23,6 +23,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Route to update the password
 Route::put('/update-pw', [PasswordController::class, 'updatePassword']);
+Route::put('/change-password', [PasswordController::class, 'changePassword']);
 
 // Create a new task
 Route::post('/tasks', function (\Illuminate\Http\Request $request) {
@@ -232,6 +233,63 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
     }
 });
 
+// talk to ChatGPT
+Route::post('/chatgpt', function (Request $request) {
+    // This method will perform a single request to ChatGPT
+    // and return the response as recieved
+
+    try {
+
+        $apiUrl = 'https://api.openai.com/v1/chat/completions';
+        $token = env('OPENAI_API_KEY');
+
+        if (empty($token)) {
+            throw new \Exception('No API key found.');
+        }
+
+        $jsonString = $request->getContent();
+
+        $response = Http::withOptions([
+            'verify' => false
+        ])->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json'
+        ])->withBody(
+            $jsonString, 'application/json'
+        )->post($apiUrl);
+
+        if ($response->successful()) {
+            // Process the response data
+            $data = $response->json();
+        } else {
+            // Handle the error
+            throw new \Exception('Failed to connect to ChatGPT: ' . $response->body());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Talked to ChatGPT.',
+            'response' => $data
+        ], 200);
+
+    
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while processing your request. Please try again later.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+/* START USERS ENDPOINTS */
+
+// Get all users
+Route::get('/users', function() {
+    $users = DB::select('SELECT * FROM users');
+    return response()->json($users);
+});
+
 // Create a new user
 Route::post('/users', function (\Illuminate\Http\Request $request) {
 
@@ -329,64 +387,7 @@ Route::delete('/users/{id}', function ($id) {
     
 });
 
-// talk to ChatGPT
-Route::post('/chatgpt', function (Request $request) {
-    // This method will perform a single request to ChatGPT
-    // and return the response as recieved
-
-    try {
-
-        $apiUrl = 'https://api.openai.com/v1/chat/completions';
-        $token = env('OPENAI_API_KEY');
-
-        if (empty($token)) {
-            throw new \Exception('No API key found.');
-        }
-
-        $jsonString = $request->getContent();
-
-        $response = Http::withOptions([
-            'verify' => false
-        ])->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json'
-        ])->withBody(
-            $jsonString, 'application/json'
-        )->post($apiUrl);
-
-        if ($response->successful()) {
-            // Process the response data
-            $data = $response->json();
-        } else {
-            // Handle the error
-            throw new \Exception('Failed to connect to ChatGPT: ' . $response->body());
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Talked to ChatGPT.',
-            'response' => $data
-        ], 200);
-
-    
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'An error occurred while processing your request. Please try again later.',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-});
-
-/* START USERS ENDPOINTS */
-
-// Get all users
-Route::get('/users', function() {
-    $users = DB::select('SELECT * FROM users');
-    return response()->json($users);
-});
-
-// Get specific user
+// Get specific user by ID
 Route::get('/users/{id}', function ($id) {
     try {
         $user = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
@@ -411,8 +412,8 @@ Route::get('/users/{id}', function ($id) {
     
 });
 
-// Update user
-Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
+// Update existing user
+Route::put('/users/{id}', function (\Illuminate\Http\Request $request, $id) {
 
     try {
         $request->validate([
@@ -425,7 +426,18 @@ Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
         $last_name = $request->input('last_name');
         $email = $request->input('email');
         $settings = $request->input('settings');
+
+        // First check that there is no other user with the same email address
+        $duplicateEmail = DB::select('SELECT id FROM users WHERE email = ? AND id != ?', [$email, $id]);
+
+        if (!empty($duplicateEmail)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A user with that email address allready exists.'
+            ], 400);
+        }
     
+        // Continue with the update
         $affected = DB::update('
             UPDATE users 
             SET first_name = ?,
@@ -437,12 +449,12 @@ Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
             [$first_name, $last_name, $email, $settings, $id]
         );
         
-        if ($affected === 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No changes were made.'
-            ], 404);
-        }
+        // if ($affected === 0) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'No changes were made.'
+        //     ], 404);
+        // }
 
         $updatedUser = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
         unset($updatedUser[0]->password); // Remove password
@@ -450,7 +462,7 @@ Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully.',
-            'task' => $updatedUser[0], // makes sure that we access the first (and only) element in the array.,
+            'user' => $updatedUser[0], // makes sure that we access the first (and only) element in the array.,
         ], 200);
 
     } catch (\illuminate\Validation\ValidationException $e) {
@@ -467,4 +479,5 @@ Route::put('/user/{id}', function (\Illuminate\Http\Request $request, $id) {
         ], 500);
     }
 });
+
 /* END USERS ENDPOINTS */
