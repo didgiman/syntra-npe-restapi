@@ -103,7 +103,7 @@ class PasswordController extends Controller
             // validate the request to ensure user_id and new password are provided
             $request->validate([
                 'id' => 'required|integer|exists:users,id',
-                'old_password' => 'required|string|min:6',
+                'old_password' => 'required|string',
                 'new_password' => 'required|string|min:6',
             ]);
 
@@ -166,7 +166,8 @@ class PasswordController extends Controller
             // Custom error message for validation errors
             return response()->json([
                 'success' => false,
-                'message' => 'The new password must be at least 6 characters.',
+                'message' => 'Invalid request.',
+                'errors' =>$e->errors()
             ], 422);
 
         } catch (\Exception $e) {
