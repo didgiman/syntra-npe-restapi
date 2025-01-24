@@ -391,7 +391,7 @@ Route::delete('/users/{id}', function ($id) {
 Route::get('/users/{id}', function ($id) {
     try {
         $user = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
-        if ($user === 0) {
+        if (empty($user)) {
             return response()->json([
                 'success' => false,
                 'message' => 'User not found.',
@@ -425,7 +425,7 @@ Route::put('/users/{id}', function (\Illuminate\Http\Request $request, $id) {
         $first_name = $request->input('first_name');
         $last_name = $request->input('last_name');
         $email = $request->input('email');
-        $settings = $request->input('settings');
+        $settings = $request->input('settings', null);
 
         // First check that there is no other user with the same email address
         $duplicateEmail = DB::select('SELECT id FROM users WHERE email = ? AND id != ?', [$email, $id]);
@@ -476,6 +476,7 @@ Route::put('/users/{id}', function (\Illuminate\Http\Request $request, $id) {
         return response()->json([
             'success' => false,
             'message' => 'An error occurred while processing your request. Please try again later.',
+            'error' => $e->getMessage()
         ], 500);
     }
 });
