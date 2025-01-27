@@ -216,7 +216,7 @@ Route::get('/usertasks/{user_id}', function ($user_id) {
                 'success' => true,
                 'message' => 'No tasks found for the specified user.',
                 'tasks' => $tasks
-            ], 404);
+            ], 200);
         }
 
         return response()->json([
