@@ -304,7 +304,7 @@ Route::post('/users', function (\Illuminate\Http\Request $request) {
 
         $first_name = $request->input('first_name');
         $last_name = $request->input('last_name');
-        $email = $request->input('email');
+        $email = strtolower($request->input('email'));
         $password = $request->input('password');
 
         $password = bcrypt($request->input('password')); // hashes a users password using bcrypt (Laravel default)
@@ -424,7 +424,7 @@ Route::put('/users/{id}', function (\Illuminate\Http\Request $request, $id) {
 
         $first_name = $request->input('first_name');
         $last_name = $request->input('last_name');
-        $email = $request->input('email');
+        $email = strtolower($request->input('email'));
         $settings = $request->input('settings', null);
 
         // First check that there is no other user with the same email address

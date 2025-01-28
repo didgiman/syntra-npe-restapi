@@ -18,7 +18,7 @@ class AuthController extends Controller
         ]);
 
         // Get the email and password from the request
-        $email = $request->input('email');
+        $email = strtolower($request->input('email'));
         $password = $request->input('password');
 
         // Check if the email exists in the database
